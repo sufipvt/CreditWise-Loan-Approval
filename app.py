@@ -13,7 +13,7 @@ st.set_page_config(
 )
 
 # ==================================================
-# LOAD FILES
+# LOAD MODEL FILES
 # ==================================================
 
 model = pickle.load(open("model.pkl", "rb"))
@@ -41,9 +41,8 @@ st.sidebar.info(
 st.title("🏦 CreditWise Loan Prediction")
 
 st.markdown("""
-Predict whether a loan application is likely
-to be **approved or rejected** based on
-financial and applicant information.
+Predict whether a loan application is likely to be **approved or rejected**
+based on financial and applicant information.
 """)
 
 # ==================================================
@@ -80,7 +79,7 @@ Education_Level = st.selectbox(
 )
 
 # ==================================================
-# EMPLOYMENT
+# EMPLOYMENT INFORMATION
 # ==================================================
 
 st.subheader("💼 Employment Information")
@@ -184,14 +183,14 @@ DTI_Ratio = st.slider(
 
 if st.button("Predict Loan Approval"):
 
-    # ---------------- Education Encoding ----------------
+    # ---------------- EDUCATION ENCODING ----------------
 
     education_encoded = (
         1 if Education_Level == "Graduate"
         else 0
     )
 
-    # ---------------- Numerical Features ----------------
+    # ---------------- NUMERICAL FEATURES ----------------
 
     raw_input = pd.DataFrame({
         "Applicant_Income": [Applicant_Income],
@@ -208,7 +207,7 @@ if st.button("Predict Loan Approval"):
         "Education_Level": [education_encoded]
     })
 
-    # ---------------- Categorical Features ----------------
+    # ---------------- CATEGORICAL FEATURES ----------------
 
     categorical_df = pd.DataFrame({
         "Employment_Status": [Employment_Status],
@@ -219,7 +218,7 @@ if st.button("Predict Loan Approval"):
         "Loan_Purpose": [Loan_Purpose]
     })
 
-    # ---------------- One Hot Encoding ----------------
+    # ---------------- ONE HOT ENCODING ----------------
 
     encoded = ohe.transform(categorical_df)
 
@@ -228,7 +227,7 @@ if st.button("Predict Loan Approval"):
         columns=ohe.get_feature_names_out()
     )
 
-    # ---------------- Merge Features ----------------
+    # ---------------- MERGE FEATURES ----------------
 
     final_input = pd.concat(
         [
@@ -238,13 +237,13 @@ if st.button("Predict Loan Approval"):
         axis=1
     )
 
-    # ---------------- Scale Input ----------------
+    # ---------------- SCALING ----------------
 
     scaled_input = scaler.transform(
         final_input
     )
 
-    # ---------------- Prediction ----------------
+    # ---------------- MODEL PREDICTION ----------------
 
     prediction = model.predict(
         scaled_input
@@ -268,33 +267,25 @@ if st.button("Predict Loan Approval"):
     reasons = []
 
     if Credit_Score < 600:
-        reasons.append(
-            "Low Credit Score"
-        )
+        reasons.append("Low Credit Score")
 
     if DTI_Ratio > 0.45:
-        reasons.append(
-            "High Debt-to-Income Ratio"
-        )
+        reasons.append("High Debt-to-Income Ratio")
 
     if Existing_Loans >= 3:
-        reasons.append(
-            "Too Many Existing Loans"
-        )
+        reasons.append("Too Many Existing Loans")
 
     if Savings < Loan_Amount * 0.30:
-        reasons.append(
-            "Low Savings Compared to Loan Amount"
-        )
+        reasons.append("Low Savings Compared to Loan Amount")
 
     # ==================================================
     # RESULT DISPLAY
-    # IMPORTANT FIX:
-    # 0 = APPROVED
-    # 1 = REJECTED
+    # IMPORTANT:
+    # 1 = APPROVED
+    # 0 = REJECTED
     # ==================================================
 
-    if prediction == 0:
+    if prediction == 1:
 
         st.success(
             f"✅ Loan Approved ({confidence:.2f}% confidence)"
