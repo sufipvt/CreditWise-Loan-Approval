@@ -2,7 +2,9 @@ import streamlit as st
 import pandas as pd
 import pickle
 
-# ---------------- PAGE CONFIG ----------------
+# ==================================================
+# PAGE CONFIG
+# ==================================================
 
 st.set_page_config(
     page_title="CreditWise Loan Prediction",
@@ -10,15 +12,20 @@ st.set_page_config(
     layout="centered"
 )
 
-# ---------------- LOAD MODEL FILES ----------------
+# ==================================================
+# LOAD FILES
+# ==================================================
 
 model = pickle.load(open("model.pkl", "rb"))
 scaler = pickle.load(open("scaler.pkl", "rb"))
 ohe = pickle.load(open("ohe.pkl", "rb"))
 
-# ---------------- SIDEBAR ----------------
+# ==================================================
+# SIDEBAR
+# ==================================================
 
 st.sidebar.title("🏦 CreditWise")
+
 st.sidebar.write(
     "AI-Powered Loan Approval Prediction"
 )
@@ -27,7 +34,9 @@ st.sidebar.info(
     "Built using Machine Learning + Streamlit"
 )
 
-# ---------------- TITLE ----------------
+# ==================================================
+# TITLE
+# ==================================================
 
 st.title("🏦 CreditWise Loan Prediction")
 
@@ -87,7 +96,7 @@ Employer_Category = st.selectbox(
 )
 
 # ==================================================
-# FINANCIAL
+# FINANCIAL INFORMATION
 # ==================================================
 
 st.subheader("💰 Financial Information")
@@ -130,7 +139,7 @@ Collateral_Value = st.number_input(
 )
 
 # ==================================================
-# LOAN DETAILS
+# LOAN INFORMATION
 # ==================================================
 
 st.subheader("🏦 Loan Information")
@@ -175,14 +184,14 @@ DTI_Ratio = st.slider(
 
 if st.button("Predict Loan Approval"):
 
-    # ---------------- EDUCATION ENCODING ----------------
+    # ---------------- Education Encoding ----------------
 
     education_encoded = (
         1 if Education_Level == "Graduate"
         else 0
     )
 
-    # ---------------- NUMERICAL INPUT ----------------
+    # ---------------- Numerical Features ----------------
 
     raw_input = pd.DataFrame({
         "Applicant_Income": [Applicant_Income],
@@ -199,7 +208,7 @@ if st.button("Predict Loan Approval"):
         "Education_Level": [education_encoded]
     })
 
-    # ---------------- CATEGORICAL INPUT ----------------
+    # ---------------- Categorical Features ----------------
 
     categorical_df = pd.DataFrame({
         "Employment_Status": [Employment_Status],
@@ -210,7 +219,7 @@ if st.button("Predict Loan Approval"):
         "Loan_Purpose": [Loan_Purpose]
     })
 
-    # ---------------- ONE HOT ENCODING ----------------
+    # ---------------- One Hot Encoding ----------------
 
     encoded = ohe.transform(categorical_df)
 
@@ -219,7 +228,7 @@ if st.button("Predict Loan Approval"):
         columns=ohe.get_feature_names_out()
     )
 
-    # ---------------- MERGE FEATURES ----------------
+    # ---------------- Merge Features ----------------
 
     final_input = pd.concat(
         [
@@ -229,13 +238,13 @@ if st.button("Predict Loan Approval"):
         axis=1
     )
 
-    # ---------------- SCALING ----------------
+    # ---------------- Scale Input ----------------
 
     scaled_input = scaler.transform(
         final_input
     )
 
-    # ---------------- PREDICTION ----------------
+    # ---------------- Prediction ----------------
 
     prediction = model.predict(
         scaled_input
@@ -246,10 +255,9 @@ if st.button("Predict Loan Approval"):
     )[0]
 
     confidence = min(
-    max(probability) * 100,
-    99.5
+        max(probability) * 100,
+        99.5
     )
-
 
     st.subheader("📊 Prediction Result")
 
@@ -279,15 +287,26 @@ if st.button("Predict Loan Approval"):
             "Low Savings Compared to Loan Amount"
         )
 
-    if prediction == 1:
+    # ==================================================
+    # RESULT DISPLAY
+    # IMPORTANT FIX:
+    # 0 = APPROVED
+    # 1 = REJECTED
+    # ==================================================
+
+    if prediction == 0:
 
         st.success(
             f"✅ Loan Approved ({confidence:.2f}% confidence)"
         )
 
-        st.info(
-            "Applicant profile looks financially stable."
-        )
+        st.success("""
+Strong approval indicators detected:
+
+✅ Good financial profile  
+✅ Manageable debt ratio  
+✅ Acceptable risk level
+""")
 
     else:
 
@@ -298,7 +317,7 @@ if st.button("Predict Loan Approval"):
         if len(reasons) > 0:
 
             st.warning(
-                "Possible Reasons for Rejection:"
+                "Key Risk Factors Detected"
             )
 
             for reason in reasons:
@@ -309,3 +328,13 @@ if st.button("Predict Loan Approval"):
             st.info(
                 "No major financial red flags detected."
             )
+
+# ==================================================
+# FOOTER
+# ==================================================
+
+st.markdown("---")
+
+st.caption(
+    "CreditWise | Built by Sufiyan Rizvi using Machine Learning & Streamlit"
+)
